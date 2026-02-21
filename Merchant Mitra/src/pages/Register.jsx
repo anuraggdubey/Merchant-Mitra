@@ -137,7 +137,7 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-4 py-12">
+        <div className="min-h-screen flex items-center justify-center px-4 py-8 sm:py-12">
             <div className="max-w-md w-full">
                 {/* Header */}
                 <div className="text-center mb-8">
@@ -155,7 +155,7 @@ const Register = () => {
                 </div>
 
                 {/* Registration Form */}
-                <div className="glass-card p-8">
+                <div className="glass-card p-5 sm:p-8">
                     {message.text && (
                         <div className={`mb-6 p-4 rounded-lg ${message.type === 'success'
                             ? 'bg-green-50 text-green-800 border border-green-200'

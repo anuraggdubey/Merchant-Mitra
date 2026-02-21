@@ -19,6 +19,7 @@ const KhataBook = () => {
     const [customers, setCustomers] = useState([]);
     const [stats, setStats] = useState({ totalToCollect: 0, totalToPay: 0, customersCount: 0 });
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
     const [search, setSearch] = useState('');
     const [sortBy, setSortBy] = useState('updated');
     const [filterType, setFilterType] = useState('All');
@@ -26,6 +27,7 @@ const KhataBook = () => {
     useEffect(() => {
         if (!currentUser) return;
         setLoading(true);
+        setError('');
 
         const unsub = subscribeCustomers(currentUser.uid, (result) => {
             if (result.success) {
@@ -37,6 +39,10 @@ const KhataBook = () => {
                     else if (c.totalBalance < 0) totalToPay += Math.abs(c.totalBalance);
                 });
                 setStats({ totalToCollect, totalToPay, customersCount: result.data.length });
+                setError('');
+            } else {
+                console.error('Khata load error:', result.error);
+                setError(result.error || 'Failed to load customers. Please try again.');
             }
             setLoading(false);
         });
@@ -91,7 +97,7 @@ const KhataBook = () => {
 
             <div className="max-w-2xl mx-auto px-4 pb-24">
                 {/* Stats Banner */}
-                <div className="mt-4 grid grid-cols-3 gap-3 mb-5">
+                <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3 mb-5">
                     <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center">
                         <p className="text-xs text-slate-500 mb-1">To Collect</p>
                         <p className="text-lg font-bold text-red-600">₹{stats.totalToCollect.toFixed(0)}</p>
@@ -129,8 +135,8 @@ const KhataBook = () => {
                             key={type}
                             onClick={() => setFilterType(type)}
                             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${filterType === type
-                                    ? 'bg-indigo-600 text-white shadow-sm'
-                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300'
+                                ? 'bg-indigo-600 text-white shadow-sm'
+                                : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300'
                                 }`}
                         >
                             {type === 'All' ? '🗂 All' : type === 'daily' ? '📅 Daily' : type === 'weekly' ? '📆 Weekly' : '🗓 Monthly'}
@@ -153,6 +159,13 @@ const KhataBook = () => {
                         {[1, 2, 3].map(i => (
                             <div key={i} className="bg-white rounded-2xl h-20 animate-pulse border border-slate-100" />
                         ))}
+                    </div>
+                ) : error ? (
+                    <div className="text-center py-12">
+                        <div className="text-5xl mb-4">⚠️</div>
+                        <p className="text-red-600 font-semibold text-base mb-2">Could not load customers</p>
+                        <p className="text-slate-400 text-sm mb-1">{error}</p>
+                        <p className="text-slate-400 text-xs">Check your internet connection and try reloading the page.</p>
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className="text-center py-20">

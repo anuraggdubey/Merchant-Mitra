@@ -183,7 +183,7 @@ const AddTransaction = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-4 sm:py-8 px-4">
             <div className="max-w-md mx-auto">
                 {/* Header */}
                 <div className="flex items-center mb-6">
@@ -285,7 +285,7 @@ const AddTransaction = () => {
                             </div>
 
                             {/* Customer Details */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">{t('customer_name')}</label>
                                     <input

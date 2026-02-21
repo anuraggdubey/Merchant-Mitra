@@ -13,17 +13,17 @@ const StatsCard = ({ icon, title, value, previousValue, trend, color = 'primary'
 
     return (
         <div
-            className={`glass-card p-6 ${onClick ? 'cursor-pointer hover:shadow-2xl transition-all duration-200' : ''}`}
+            className={`glass-card p-3 sm:p-6 ${onClick ? 'cursor-pointer hover:shadow-2xl transition-all duration-200 active:scale-95' : ''}`}
             onClick={onClick}
         >
-            <div className="flex items-start justify-between mb-4">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClasses[color]} flex items-center justify-center shadow-lg`}>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+                <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${colorClasses[color]} flex items-center justify-center shadow-lg flex-shrink-0`}>
                     {icon}
                 </div>
                 {percentageChange !== null && (
-                    <div className={`flex items-center text-sm font-semibold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                    <div className={`flex items-center text-xs sm:text-sm font-semibold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
                         <svg
-                            className={`w-4 h-4 mr-1 ${isPositive ? '' : 'transform rotate-180'}`}
+                            className={`w-3 h-3 sm:w-4 sm:h-4 mr-0.5 sm:mr-1 ${isPositive ? '' : 'transform rotate-180'}`}
                             fill="currentColor"
                             viewBox="0 0 20 20"
                         >
@@ -34,13 +34,13 @@ const StatsCard = ({ icon, title, value, previousValue, trend, color = 'primary'
                 )}
             </div>
 
-            <h3 className="text-sm font-medium text-slate-600 mb-1">{title}</h3>
-            <p className="text-2xl font-bold text-slate-800">
+            <h3 className="text-[10px] sm:text-sm font-medium text-slate-600 mb-1 leading-tight">{title}</h3>
+            <p className="text-base sm:text-2xl font-bold text-slate-800 truncate">
                 {typeof value === 'number' && value >= 1000 ? formatNumber(value) : value}
             </p>
 
             {trend && (
-                <p className="text-xs text-slate-500 mt-2">{trend}</p>
+                <p className="text-[9px] sm:text-xs text-slate-500 mt-1 sm:mt-2">{trend}</p>
             )}
         </div>
     );

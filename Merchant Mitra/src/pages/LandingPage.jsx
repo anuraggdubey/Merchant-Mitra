@@ -91,48 +91,49 @@ const LandingPage = () => {
         <div className="min-h-screen" style={{ background: `linear-gradient(180deg, ${colors.lightCyan} 0%, ${colors.frosted}40 30%, white 60%, ${colors.lightCyan}50 100%)` }}>
             {/* Navigation */}
             <nav className="sticky top-0 z-50 backdrop-blur-md border-b" style={{ backgroundColor: 'rgba(255,255,255,0.9)', borderColor: `${colors.frosted}` }}>
-                <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{ background: `linear-gradient(135deg, ${colors.deepTwilight}, ${colors.tealBlue})` }}>
-                            <span className="text-white text-lg font-bold">M</span>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex-shrink-0 flex items-center justify-center shadow-lg" style={{ background: `linear-gradient(135deg, ${colors.deepTwilight}, ${colors.tealBlue})` }}>
+                            <span className="text-white text-base sm:text-lg font-bold">M</span>
                         </div>
                         <div>
-                            <h1 className="text-lg font-bold" style={{ color: colors.deepTwilight, fontFamily: fonts.heading }}>Merchant Mitra</h1>
-                            <p className="text-[10px] -mt-0.5" style={{ color: colors.tealBlue, fontFamily: fonts.body }}>Trusted Payment Partner</p>
+                            <h1 className="text-base sm:text-lg font-bold" style={{ color: colors.deepTwilight, fontFamily: fonts.heading }}>Merchant Mitra</h1>
+                            <p className="text-[9px] sm:text-[10px] -mt-0.5 hidden xs:block" style={{ color: colors.tealBlue, fontFamily: fonts.body }}>Trusted Payment Partner</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4">
                         <button
                             onClick={() => navigate('/login')}
-                            className="px-5 py-2 font-medium transition-colors hover:opacity-80"
+                            className="px-3 sm:px-5 py-1.5 sm:py-2 text-sm font-medium transition-colors hover:opacity-80 active:scale-95"
                             style={{ color: colors.deepTwilight, fontFamily: fonts.heading }}
                         >
                             Login
                         </button>
                         <button
                             onClick={() => navigate('/register')}
-                            className="px-5 py-2 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
+                            className="px-3 sm:px-5 py-1.5 sm:py-2 text-sm text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl active:scale-95"
                             style={{ background: `linear-gradient(135deg, ${colors.tealBlue}, ${colors.turquoise})`, fontFamily: fonts.heading }}
                         >
-                            Get Started
+                            <span className="hidden sm:inline">Get Started</span>
+                            <span className="sm:hidden">Sign Up</span>
                         </button>
                     </div>
                 </div>
             </nav>
 
             {/* Hero Section */}
-            <section className={`px-6 pt-16 pb-20 transition-all duration-700 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+            <section className={`px-4 sm:px-6 pt-10 sm:pt-16 pb-14 sm:pb-20 transition-all duration-700 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
                 <div className="max-w-6xl mx-auto">
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                    <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                         {/* Left Content */}
                         <div>
                             {/* Trust Badge */}
-                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6" style={{ backgroundColor: `${colors.turquoise}20`, border: `1px solid ${colors.turquoise}40` }}>
-                                <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: colors.turquoise }}></span>
-                                <span className="text-sm font-medium" style={{ color: colors.tealBlue, fontFamily: fonts.body }}>Trusted by 50,000+ merchants across India</span>
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-5 sm:mb-6" style={{ backgroundColor: `${colors.turquoise}20`, border: `1px solid ${colors.turquoise}40` }}>
+                                <span className="w-2 h-2 rounded-full animate-pulse flex-shrink-0" style={{ backgroundColor: colors.turquoise }}></span>
+                                <span className="text-xs sm:text-sm font-medium" style={{ color: colors.tealBlue, fontFamily: fonts.body }}>Trusted by 50,000+ merchants across India</span>
                             </div>
 
-                            <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4" style={{ color: colors.deepTwilight, fontFamily: fonts.heading }}>
+                            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4" style={{ color: colors.deepTwilight, fontFamily: fonts.heading }}>
                                 Accept Payments
                                 <br />
                                 <span style={{ background: `linear-gradient(135deg, ${colors.tealBlue}, ${colors.turquoise})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontFamily: fonts.heading }}>
@@ -140,19 +141,19 @@ const LandingPage = () => {
                                 </span>
                             </h1>
 
-                            <p className="text-lg mb-2" style={{ color: colors.tealBlue, fontFamily: fonts.body }}>
+                            <p className="text-base sm:text-lg mb-2" style={{ color: colors.tealBlue, fontFamily: fonts.body }}>
                                 पेमेंट लेना अब बहुत आसान और सुरक्षित!
                             </p>
 
-                            <p className="mb-8 max-w-lg" style={{ color: '#4a5568', fontFamily: fonts.body }}>
+                            <p className="mb-6 sm:mb-8 max-w-lg text-sm sm:text-base" style={{ color: '#4a5568', fontFamily: fonts.body }}>
                                 Generate UPI QR codes, request payments via link and can be shared on whatsapp, and track all your sales in one place. Completely free, forever.
                             </p>
 
                             {/* CTA Buttons */}
-                            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
                                 <button
                                     onClick={() => navigate('/register')}
-                                    className="px-8 py-4 text-white rounded-xl font-semibold text-lg shadow-lg transition-all hover:shadow-xl flex items-center justify-center gap-2"
+                                    className="px-6 sm:px-8 py-3.5 sm:py-4 text-white rounded-xl font-semibold text-base sm:text-lg shadow-lg transition-all hover:shadow-xl active:scale-95 flex items-center justify-center gap-2"
                                     style={{ background: `linear-gradient(135deg, ${colors.tealBlue}, ${colors.turquoise})`, boxShadow: `0 10px 40px ${colors.tealBlue}40`, fontFamily: fonts.heading }}
                                 >
                                     <span>Start Free Now</span>
@@ -160,7 +161,7 @@ const LandingPage = () => {
                                 </button>
                                 <button
                                     onClick={() => navigate('/login')}
-                                    className="px-8 py-4 bg-white rounded-xl font-semibold transition-all hover:shadow-md"
+                                    className="px-6 sm:px-8 py-3.5 sm:py-4 bg-white rounded-xl font-semibold text-sm sm:text-base transition-all hover:shadow-md active:scale-95"
                                     style={{ color: colors.deepTwilight, border: `2px solid ${colors.frosted}`, fontFamily: fonts.heading }}
                                 >
                                     I already have an account
@@ -178,8 +179,8 @@ const LandingPage = () => {
                             </div>
                         </div>
 
-                        {/* Right - App Preview */}
-                        <div className="relative flex justify-center">
+                        {/* Right - App Preview — hidden on mobile to save space */}
+                        <div className="relative-flex justify-center hidden lg:flex">
                             {/* Phone Mockup */}
                             <div className="relative w-72 h-[580px] rounded-[3rem] p-3 shadow-2xl" style={{ backgroundColor: colors.deepTwilight }}>
                                 <div className="absolute top-6 left-1/2 -translate-x-1/2 w-24 h-6 rounded-full" style={{ backgroundColor: colors.deepTwilight }}></div>
@@ -246,7 +247,7 @@ const LandingPage = () => {
                         <p style={{ color: colors.tealBlue, fontFamily: fonts.body }}>आपके बिज़नेस के लिए सब कुछ एक जगह</p>
                     </div>
 
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                         {features.map((feature, index) => (
                             <div
                                 key={index}
@@ -279,7 +280,7 @@ const LandingPage = () => {
                         <p style={{ color: colors.tealBlue, fontFamily: fonts.body }}>सिर्फ 3 आसान स्टेप्स में शुरू करें</p>
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                         {[
                             { step: '1', title: 'Create Free Account', titleHi: 'मुफ्त अकाउंट बनाएं', desc: 'Sign up with your phone number or email. It takes less than a minute.', icon: '📝', gradient: `linear-gradient(135deg, ${colors.tealBlue}, ${colors.turquoise})` },
                             { step: '2', title: 'Add Your UPI ID', titleHi: 'अपना UPI ID जोड़ें', desc: 'Link your existing UPI ID where you want to receive payments.', icon: '🔗', gradient: `linear-gradient(135deg, ${colors.turquoise}, ${colors.frosted})` },
@@ -287,10 +288,10 @@ const LandingPage = () => {
                         ].map((item, index) => (
                             <div
                                 key={index}
-                                className="flex items-start gap-6 p-6 bg-white rounded-2xl hover:shadow-lg transition-all"
+                                className="flex items-start gap-4 sm:gap-6 p-4 sm:p-6 bg-white rounded-2xl hover:shadow-lg transition-all"
                                 style={{ border: `1px solid ${colors.frosted}` }}
                             >
-                                <div className="w-14 h-14 rounded-xl flex items-center justify-center text-xl font-bold text-white shadow-md flex-shrink-0" style={{ background: item.gradient, fontFamily: fonts.heading }}>
+                                <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-lg sm:text-xl font-bold text-white shadow-md flex-shrink-0" style={{ background: item.gradient, fontFamily: fonts.heading }}>
                                     {item.step}
                                 </div>
                                 <div className="flex-1">
@@ -357,11 +358,11 @@ const LandingPage = () => {
             </section>
 
             {/* Footer */}
-            <footer className="px-6 py-10" style={{ backgroundColor: colors.deepTwilight, borderTop: `1px solid ${colors.tealBlue}40` }}>
+            <footer className="px-4 sm:px-6 py-8 sm:py-10" style={{ backgroundColor: colors.deepTwilight, borderTop: `1px solid ${colors.tealBlue}40` }}>
                 <div className="max-w-6xl mx-auto">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex flex-col items-center md:flex-row md:justify-between gap-5">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${colors.tealBlue}, ${colors.turquoise})` }}>
+                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${colors.tealBlue}, ${colors.turquoise})` }}>
                                 <span className="text-white font-bold">M</span>
                             </div>
                             <div>
@@ -369,11 +370,11 @@ const LandingPage = () => {
                                 <p className="text-xs" style={{ color: colors.frosted, fontFamily: fonts.body }}>Trusted Payment Partner</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-6 text-sm" style={{ color: colors.frosted, fontFamily: fonts.body }}>
-                            <a href="#" className="transition-colors" style={{ color: colors.frosted }} onMouseEnter={(e) => e.target.style.color = colors.turquoise} onMouseLeave={(e) => e.target.style.color = colors.frosted}>Privacy Policy</a>
-                            <a href="#" className="transition-colors" style={{ color: colors.frosted }} onMouseEnter={(e) => e.target.style.color = colors.turquoise} onMouseLeave={(e) => e.target.style.color = colors.frosted}>Terms of Service</a>
-                            <a href="#" className="transition-colors" style={{ color: colors.frosted }} onMouseEnter={(e) => e.target.style.color = colors.turquoise} onMouseLeave={(e) => e.target.style.color = colors.frosted}>Support</a>
-                            <a href="#" className="transition-colors" style={{ color: colors.frosted }} onMouseEnter={(e) => e.target.style.color = colors.turquoise} onMouseLeave={(e) => e.target.style.color = colors.frosted}>Contact</a>
+                        <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-sm" style={{ color: colors.frosted, fontFamily: fonts.body }}>
+                            <a href="#" className="transition-colors hover:opacity-80" style={{ color: colors.frosted }}>Privacy Policy</a>
+                            <a href="#" className="transition-colors hover:opacity-80" style={{ color: colors.frosted }}>Terms</a>
+                            <a href="#" className="transition-colors hover:opacity-80" style={{ color: colors.frosted }}>Support</a>
+                            <a href="#" className="transition-colors hover:opacity-80" style={{ color: colors.frosted }}>Contact</a>
                         </div>
                     </div>
                     <div className="mt-8 pt-6 text-center" style={{ borderTop: `1px solid ${colors.tealBlue}30` }}>

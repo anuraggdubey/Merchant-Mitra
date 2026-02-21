@@ -5,18 +5,40 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
   body {
     @apply bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen font-sans;
+    /* Safe area for notched phones */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    overscroll-behavior-y: none;
+  }
+  /* Prevent iOS zoom on input focus */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  @media (min-width: 640px) {
+    input, select, textarea {
+      font-size: inherit;
+    }
+  }
+  /* Smooth tap highlight removal for mobile */
+  button, a {
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
+    @apply bg-gradient-to-r from-primary-600 to-primary-700 text-white px-5 py-3 sm:px-6 rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
   }
   
   .btn-secondary {
-    @apply bg-white text-primary-700 border-2 border-primary-600 px-6 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-all duration-200;
+    @apply bg-white text-primary-700 border-2 border-primary-600 px-5 py-3 sm:px-6 rounded-lg font-semibold hover:bg-primary-50 active:scale-95 transition-all duration-200;
   }
   
   .input-field {
@@ -24,10 +46,25 @@
   }
   
   .card {
-    @apply bg-white rounded-2xl shadow-xl p-8 backdrop-blur-sm;
+    @apply bg-white rounded-2xl shadow-xl p-5 sm:p-8 backdrop-blur-sm;
   }
   
   .glass-card {
     @apply bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20;
   }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mobile-friendly touch targets */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
 }
+

@@ -42,8 +42,9 @@ export const getCustomers = async (merchantId) => {
         const q = query(
             collection(db, CUSTOMERS_COL),
             where('merchantId', '==', merchantId),
-            where('isActive', '==', true),
-            orderBy('updatedAt', 'desc')
+            where('isActive', '==', true)
+            // Note: orderBy removed — requires composite index that may not exist.
+            // Sorting is done client-side in the component.
         );
         const snap = await getDocs(q);
         const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -58,13 +59,16 @@ export const subscribeCustomers = (merchantId, callback) => {
     const q = query(
         collection(db, CUSTOMERS_COL),
         where('merchantId', '==', merchantId),
-        where('isActive', '==', true),
-        orderBy('updatedAt', 'desc')
+        where('isActive', '==', true)
+        // Note: orderBy removed — requires a composite Firestore index.
+        // Without the index, Firestore silently returns nothing.
+        // Client-side sorting in KhataBook.jsx handles ordering.
     );
     return onSnapshot(q, (snap) => {
         const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         callback({ success: true, data });
     }, (error) => {
+        console.error('subscribeCustomers error:', error);
         callback({ success: false, error: error.message, data: [] });
     });
 };

@@ -58,37 +58,37 @@ const TransactionHistory = () => {
         <div className="min-h-screen bg-slate-50">
             {/* Header */}
             <div className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-10">
-                <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <div className="flex items-center">
+                <div className="max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
+                    <div className="flex items-center min-w-0">
                         <button
                             onClick={() => navigate('/dashboard')}
-                            className="mr-3 p-2 rounded-full hover:bg-slate-100 transition-colors"
+                            className="mr-2 sm:mr-3 p-2 rounded-full hover:bg-slate-100 active:scale-95 transition-all flex-shrink-0"
                         >
                             <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
                         </button>
-                        <h1 className="text-xl font-bold text-slate-800">Transaction History</h1>
+                        <h1 className="text-lg sm:text-xl font-bold text-slate-800 truncate">Transaction History</h1>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                         <LanguageSelector />
                         <button
                             onClick={handleExport}
-                            className="flex items-center text-primary-600 font-medium text-sm hover:text-primary-700"
+                            className="flex items-center text-primary-600 font-medium text-sm hover:text-primary-700 active:scale-95 transition-all"
                         >
-                            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 sm:mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
-                            Export CSV
+                            <span className="hidden sm:inline">Export CSV</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div className="max-w-4xl mx-auto px-4 py-6">
+            <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
                 {/* Filters */}
                 <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                         {/* Search */}
                         <div className="relative">
                             <input

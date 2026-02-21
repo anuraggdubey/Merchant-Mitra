@@ -52,29 +52,31 @@ const TransactionDetailsModal = ({ transaction, onClose, onUpdate }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:px-4 backdrop-blur-sm">
+            <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md overflow-hidden max-h-[90vh] flex flex-col">
                 {/* Header */}
-                <div className={`p-6 text-white ${isIncome ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gradient-to-r from-red-500 to-red-600'}`}>
+                <div className={`p-4 sm:p-6 text-white ${isIncome ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gradient-to-r from-red-500 to-red-600'} flex-shrink-0`}>
+                    {/* Drag handle on mobile */}
+                    <div className="w-10 h-1 bg-white/30 rounded-full mx-auto mb-3 sm:hidden" />
                     <div className="flex justify-between items-start">
-                        <div>
+                        <div className="min-w-0 flex-1">
                             <p className="text-white/80 text-sm font-medium mb-1">
                                 {isIncome ? 'Received from' : 'Paid to'}
                             </p>
-                            <h2 className="text-2xl font-bold">{transaction.customerName || 'Unknown Customer'}</h2>
+                            <h2 className="text-xl sm:text-2xl font-bold truncate">{transaction.customerName || 'Unknown Customer'}</h2>
                             <p className="text-white/90 text-sm mt-1">{transaction.customerPhone}</p>
                         </div>
                         <button
                             onClick={onClose}
-                            className="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-1 transition-colors"
+                            className="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-1.5 transition-colors ml-2 flex-shrink-0"
                         >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
-                    <div className="mt-6">
-                        <h3 className="text-4xl font-bold">
+                    <div className="mt-4">
+                        <h3 className="text-3xl sm:text-4xl font-bold">
                             {formatCurrency(Math.abs(transaction.amount))}
                         </h3>
                         <p className="text-white/80 text-sm mt-1">
@@ -84,7 +86,7 @@ const TransactionDetailsModal = ({ transaction, onClose, onUpdate }) => {
                 </div>
 
                 {/* Body */}
-                <div className="p-6">
+                <div className="p-4 sm:p-6 overflow-y-auto flex-1 overscroll-contain">
                     {/* Status Badge */}
                     <div className="flex justify-between items-center mb-6 pb-6 border-b border-slate-100">
                         <span className="text-slate-500 font-medium text-sm">Status</span>
