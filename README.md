@@ -4,6 +4,8 @@
 
 ---
 
+Live at: https://merchant-mitra-9kcikjmru-anurag-dubeys-projects-bd482947.vercel.app/
+
 ## What is Merchant Mitra?
 
 Most small merchants in India still rely on paper notebooks to track who owes them money, how much they collected today, and which customer hasn't paid yet. Merchant Mitra replaces that notebook with a fast, smart, and mobile-friendly digital platform — designed specifically for the way Indian merchants work.
