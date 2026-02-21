@@ -1,9 +1,16 @@
 import admin from "firebase-admin";
 import fs from "fs";
 
-const serviceAccount = JSON.parse(
-    fs.readFileSync("./firebase-service-account.json", "utf8")
-);
+// In production (Render): reads from FIREBASE_SERVICE_ACCOUNT env variable
+// In local dev: reads from firebase-service-account.json file
+let serviceAccount;
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+} else {
+    serviceAccount = JSON.parse(
+        fs.readFileSync("./firebase-service-account.json", "utf8")
+    );
+}
 
 if (!admin.apps.length) {
     admin.initializeApp({
