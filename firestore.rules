@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helpers ─────────────────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isMerchant(merchantId) {
+      return isSignedIn() && request.auth.uid == merchantId;
+    }
+
+    // ─── Merchants ────────────────────────────────────────────────────────────
+    match /merchants/{merchantId} {
+      allow read, write: if isMerchant(merchantId);
+    }
+
+    // ─── Customers (Khata) ────────────────────────────────────────────────────
+    match /customers/{customerId} {
+      allow read, write: if isSignedIn()
+        && request.auth.uid == resource.data.merchantId;
+
+      allow create: if isSignedIn()
+        && request.auth.uid == request.resource.data.merchantId;
+    }
+
+    // ─── Khata Entries ────────────────────────────────────────────────────────
+    match /khataEntries/{entryId} {
+      allow read: if isSignedIn()
+        && request.auth.uid == resource.data.merchantId;
+
+      allow create: if isSignedIn()
+        && request.auth.uid == request.resource.data.merchantId;
+
+      allow update, delete: if isSignedIn()
+        && request.auth.uid == resource.data.merchantId;
+    }
+
+    // ─── Payments ─────────────────────────────────────────────────────────────
+    match /payments/{paymentId} {
+      allow read, write: if isSignedIn()
+        && request.auth.uid == resource.data.merchantId;
+
+      allow create: if isSignedIn()
+        && request.auth.uid == request.resource.data.merchantId;
+    }
+
+    // ─── Transactions ─────────────────────────────────────────────────────────
+    match /transactions/{transactionId} {
+      allow read, write: if isSignedIn()
+        && request.auth.uid == resource.data.merchantId;
+
+      allow create: if isSignedIn()
+        && request.auth.uid == request.resource.data.merchantId;
+    }
+
+    // ─── Udhaar (Credit) ─────────────────────────────────────────────────────
+    match /udhaar/{udhaarId} {
+      allow read, write: if isSignedIn()
+        && request.auth.uid == resource.data.merchantId;
+
+      allow create: if isSignedIn()
+        && request.auth.uid == request.resource.data.merchantId;
+    }
+  }
+}

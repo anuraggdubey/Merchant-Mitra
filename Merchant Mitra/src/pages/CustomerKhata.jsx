@@ -1,14 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
     getCustomer, subscribeEntries, addEntry, updateEntry, deleteEntry,
-    sendWhatsAppReminder, exportKhataCSV, updateCustomer
+    sendWhatsAppReminder, exportKhataCSV
 } from '../services/khata.service';
 import KhataEntryModal from '../components/KhataEntryModal';
+import KhataPaymentModal from '../components/KhataPaymentModal';
 import { getAvatarColor } from '../components/CustomerCard';
 
 const CYCLE_VIEWS = ['All', 'Daily', 'Weekly', 'Monthly'];
+
+const DATE_RANGES = [
+    { label: 'Today', value: 'today' },
+    { label: 'This Week', value: 'week' },
+    { label: 'This Month', value: 'month' },
+    { label: 'Last 3 Months', value: '3months' },
+    { label: 'All Time', value: 'all' },
+];
 
 const formatDate = (ts) => {
     if (!ts) return '';
@@ -19,6 +28,13 @@ const formatDate = (ts) => {
 const formatTime = (ts) => {
     if (!ts) return '';
     return new Date(ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+};
+
+const formatDateTime = (ts) => {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) +
+        ' · ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 };
 
 // Group entries by date label based on cycle
@@ -59,6 +75,27 @@ const groupEntries = (entries, cycle) => {
     return [];
 };
 
+// Get start timestamp for a date-range filter
+const getRangeStart = (range) => {
+    const now = new Date();
+    if (range === 'today') {
+        const d = new Date(now); d.setHours(0, 0, 0, 0); return d.getTime();
+    }
+    if (range === 'week') {
+        const d = new Date(now);
+        d.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+        d.setHours(0, 0, 0, 0);
+        return d.getTime();
+    }
+    if (range === 'month') {
+        return new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    }
+    if (range === '3months') {
+        return new Date(now.getFullYear(), now.getMonth() - 3, 1).getTime();
+    }
+    return 0; // all
+};
+
 const EntryRow = ({ entry, onEdit, onDelete, onMarkPaid }) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const isCredit = entry.type === 'CREDIT';
@@ -80,7 +117,7 @@ const EntryRow = ({ entry, onEdit, onDelete, onMarkPaid }) => {
                     <span className="text-xs text-slate-400">{formatTime(entry.createdAt)}</span>
                     {entry.dueDate && entry.status === 'PENDING' && (
                         <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${new Date(entry.dueDate) < new Date()
-                                ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
+                            ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
                             }`}>
                             Due {formatDate(entry.dueDate)}
                         </span>
@@ -123,6 +160,184 @@ const EntryRow = ({ entry, onEdit, onDelete, onMarkPaid }) => {
     );
 };
 
+// ─── History Tab ─────────────────────────────────────────────────────────────
+
+const HistoryTab = ({ entries }) => {
+    const [dateRange, setDateRange] = useState('all');
+    const [search, setSearch] = useState('');
+
+    // Filter by date range + search
+    const filtered = useMemo(() => {
+        // DEBUG: trace exactly what arrives
+        console.log('[HistoryTab] entries.length =', entries.length);
+        if (entries.length > 0) {
+            console.log('[HistoryTab] first entry sample =', JSON.stringify(entries[0]));
+        }
+        const rangeStart = getRangeStart(dateRange);
+        console.log('[HistoryTab] rangeStart =', rangeStart, 'dateRange =', dateRange);
+        const result = [...entries]
+            .filter(e => e.createdAt != null && (rangeStart === 0 || e.createdAt >= rangeStart))
+            .filter(e => !search || e.description?.toLowerCase().includes(search.toLowerCase()))
+            .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+        console.log('[HistoryTab] filtered.length =', result.length);
+        return result;
+    }, [entries, dateRange, search]);
+
+    // Compute running balance (oldest → newest)
+    const rows = useMemo(() => {
+        let bal = 0;
+        return filtered.map(e => {
+            if (e.type === 'CREDIT') bal += e.amount || 0;
+            else if (e.type === 'DEBIT') bal -= e.amount || 0;
+            return { ...e, runningBalance: bal };
+        });
+    }, [filtered]);
+
+    // Summary stats
+    const totalCredit = filtered.filter(e => e.type === 'CREDIT').reduce((s, e) => s + (e.amount || 0), 0);
+    const totalDebit = filtered.filter(e => e.type === 'DEBIT').reduce((s, e) => s + (e.amount || 0), 0);
+    const net = totalCredit - totalDebit;
+
+    return (
+        <div className="flex flex-col gap-4">
+            {/* Date Range Filters */}
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                {DATE_RANGES.map(r => (
+                    <button
+                        key={r.value}
+                        onClick={() => setDateRange(r.value)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0 ${dateRange === r.value
+                            ? 'bg-indigo-600 text-white shadow-sm'
+                            : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300'
+                            }`}
+                    >
+                        {r.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* Search */}
+            <div className="relative">
+                <svg className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                    type="text"
+                    placeholder="Search entries..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 bg-white border-2 border-slate-200 rounded-xl text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition-all"
+                />
+            </div>
+
+            {/* Summary Stats */}
+            <div className="grid grid-cols-3 gap-2">
+                <div className="bg-red-50 rounded-xl p-3 text-center border border-red-100">
+                    <p className="text-xs text-red-400 font-medium mb-0.5">Credit Given</p>
+                    <p className="text-base font-bold text-red-600">₹{totalCredit.toFixed(0)}</p>
+                </div>
+                <div className={`rounded-xl p-3 text-center border ${net > 0 ? 'bg-red-50 border-red-100' : net < 0 ? 'bg-green-50 border-green-100' : 'bg-slate-50 border-slate-100'}`}>
+                    <p className={`text-xs font-medium mb-0.5 ${net > 0 ? 'text-red-400' : net < 0 ? 'text-green-400' : 'text-slate-400'}`}>Net Balance</p>
+                    <p className={`text-base font-bold ${net > 0 ? 'text-red-600' : net < 0 ? 'text-green-600' : 'text-slate-600'}`}>
+                        {net > 0 ? '+' : ''}₹{Math.abs(net).toFixed(0)}
+                    </p>
+                </div>
+                <div className="bg-green-50 rounded-xl p-3 text-center border border-green-100">
+                    <p className="text-xs text-green-400 font-medium mb-0.5">Payments</p>
+                    <p className="text-base font-bold text-green-600">₹{totalDebit.toFixed(0)}</p>
+                </div>
+            </div>
+
+            {/* Ledger Table */}
+            {rows.length === 0 ? (
+                <div className="text-center py-14">
+                    <div className="text-5xl mb-3">🔍</div>
+                    <p className="text-slate-600 font-semibold">No entries found</p>
+                    <p className="text-slate-400 text-sm mt-1">
+                        {search ? 'Try a different keyword' : 'No transactions in this period'}
+                    </p>
+                </div>
+            ) : (
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    {/* Table header */}
+                    <div className="grid grid-cols-[1fr_auto_auto_auto] items-center px-4 py-2 bg-slate-50 border-b border-slate-100 gap-3">
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Description</p>
+                        <p className="text-xs font-semibold text-red-400 uppercase tracking-wide text-right">Credit</p>
+                        <p className="text-xs font-semibold text-green-400 uppercase tracking-wide text-right">Payment</p>
+                        <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wide text-right">Balance</p>
+                    </div>
+
+                    {/* Rows */}
+                    <div className="divide-y divide-slate-50">
+                        {rows.map((entry, idx) => {
+                            const isCredit = entry.type === 'CREDIT';
+                            const isDebit = entry.type === 'DEBIT';
+                            const balPositive = entry.runningBalance > 0;
+                            return (
+                                <div
+                                    key={entry.id}
+                                    className="grid grid-cols-[1fr_auto_auto_auto] items-center px-4 py-3 hover:bg-slate-50 transition-colors gap-3"
+                                >
+                                    {/* Left: Description + date */}
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-sm">{isCredit ? '📦' : isDebit ? '💵' : '📝'}</span>
+                                            <p className="text-sm font-medium text-slate-800 truncate">{entry.description || '—'}</p>
+                                        </div>
+                                        <p className="text-xs text-slate-400 mt-0.5">{formatDateTime(entry.createdAt)}</p>
+                                        {entry.status === 'PAID' && entry.type === 'CREDIT' && (
+                                            <span className="inline-block text-xs bg-green-100 text-green-600 px-1.5 py-0.5 rounded-full mt-0.5">Paid</span>
+                                        )}
+                                        {entry.dueDate && entry.status === 'PENDING' && (
+                                            <span className={`inline-block text-xs px-1.5 py-0.5 rounded-full mt-0.5 font-medium ${new Date(entry.dueDate) < new Date() ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'}`}>
+                                                Due {formatDate(entry.dueDate)}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Credit */}
+                                    <p className={`text-sm font-semibold text-right ${isCredit ? 'text-red-600' : 'text-slate-200'}`}>
+                                        {isCredit ? `₹${entry.amount?.toFixed(2)}` : '—'}
+                                    </p>
+
+                                    {/* Payment/Debit */}
+                                    <p className={`text-sm font-semibold text-right ${isDebit ? 'text-green-600' : 'text-slate-200'}`}>
+                                        {isDebit ? `₹${entry.amount?.toFixed(2)}` : '—'}
+                                    </p>
+
+                                    {/* Running balance */}
+                                    <div className="text-right">
+                                        <span className={`text-sm font-bold px-2 py-0.5 rounded-lg ${balPositive
+                                            ? 'bg-red-50 text-red-600'
+                                            : entry.runningBalance < 0
+                                                ? 'bg-green-50 text-green-600'
+                                                : 'bg-slate-50 text-slate-500'
+                                            }`}>
+                                            ₹{Math.abs(entry.runningBalance).toFixed(0)}
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Legend footer */}
+                    <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                        <div className="flex items-center gap-3 text-xs text-slate-400">
+                            <span><span className="text-red-500 font-semibold">Balance (red)</span> = Customer owes you</span>
+                            <span>·</span>
+                            <span><span className="text-green-500 font-semibold">Balance (green)</span> = You owe customer</span>
+                        </div>
+                        <span className="text-xs text-slate-400">{rows.length} entries</span>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 const CustomerKhata = () => {
     const { customerId } = useParams();
     const navigate = useNavigate();
@@ -137,18 +352,27 @@ const CustomerKhata = () => {
     const [cycleView, setCycleView] = useState('All');
     const [confirmDelete, setConfirmDelete] = useState(null);
     const [toast, setToast] = useState('');
+    const [activeTab, setActiveTab] = useState('entries'); // 'entries' | 'history'
+    const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
     useEffect(() => {
-        if (!customerId) return;
+        if (!customerId || !currentUser?.uid) return;
         getCustomer(customerId).then(r => {
             if (r.success) setCustomer(r.data);
         });
-        const unsub = subscribeEntries(customerId, (r) => {
+        const unsub = subscribeEntries(currentUser.uid, customerId, (r) => {
+            console.log('[CustomerKhata] subscribeEntries response:', r.success, 'count:', r.data?.length, 'error:', r.error);
             if (r.success) setEntries(r.data);
+            else console.warn('subscribeEntries error:', r.error);
             setLoading(false);
         });
         return () => unsub();
-    }, [customerId]);
+    }, [customerId, currentUser?.uid]);
+
+    const refreshCustomer = async () => {
+        const r = await getCustomer(customerId);
+        if (r.success) setCustomer(r.data);
+    };
 
     const showToast = (msg) => {
         setToast(msg);
@@ -168,7 +392,6 @@ const CustomerKhata = () => {
             setModalOpen(false);
             setEditingEntry(null);
             showToast(editingEntry ? '✅ Entry updated' : '✅ Entry added');
-            // Refresh customer balance display
             const r = await getCustomer(customerId);
             if (r.success) setCustomer(r.data);
         }
@@ -189,19 +412,6 @@ const CustomerKhata = () => {
     };
 
     const grouped = groupEntries(entries, cycleView);
-
-    // Running balance for full view
-    const runningBalances = (() => {
-        const sorted = [...entries].sort((a, b) => a.createdAt - b.createdAt);
-        let bal = 0;
-        const map = {};
-        sorted.forEach(e => {
-            if (e.type === 'CREDIT') bal += e.amount || 0;
-            else if (e.type === 'DEBIT') bal -= e.amount || 0;
-            map[e.id] = bal;
-        });
-        return map;
-    })();
 
     if (!customer && !loading) {
         return (
@@ -246,6 +456,17 @@ const CustomerKhata = () => {
                     </div>
                     {/* Actions */}
                     <div className="flex gap-1">
+                        {/* Collect Payment */}
+                        <button
+                            onClick={() => setPaymentModalOpen(true)}
+                            title="Collect Payment"
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-bold shadow hover:shadow-md transition-all"
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            Collect
+                        </button>
                         {customer?.phone && (
                             <button
                                 onClick={() => sendWhatsAppReminder(customer, merchantData?.shopName || 'Merchant')}
@@ -282,10 +503,10 @@ const CustomerKhata = () => {
             <div className="max-w-2xl mx-auto px-4 pb-28">
                 {/* Balance Card */}
                 <div className={`mt-4 rounded-2xl p-5 text-white shadow-lg mb-4 ${balance > 0
-                        ? 'bg-gradient-to-br from-red-500 to-red-700'
-                        : balance < 0
-                            ? 'bg-gradient-to-br from-green-500 to-green-700'
-                            : 'bg-gradient-to-br from-slate-500 to-slate-700'
+                    ? 'bg-gradient-to-br from-red-500 to-red-700'
+                    : balance < 0
+                        ? 'bg-gradient-to-br from-green-500 to-green-700'
+                        : 'bg-gradient-to-br from-slate-500 to-slate-700'
                     }`}>
                     <div className="flex justify-between items-start">
                         <div>
@@ -295,9 +516,7 @@ const CustomerKhata = () => {
                             <p className="text-3xl font-bold">₹{Math.abs(balance).toFixed(2)}</p>
                         </div>
                         <div className="text-right">
-                            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${customer?.khataType === 'daily' ? 'bg-white/20' :
-                                    customer?.khataType === 'weekly' ? 'bg-white/20' : 'bg-white/20'
-                                }`}>
+                            <span className="text-xs font-semibold px-2 py-1 rounded-full bg-white/20">
                                 {customer?.khataType === 'daily' ? '📅 Daily' :
                                     customer?.khataType === 'weekly' ? '📆 Weekly' : '🗓 Monthly'} Khata
                             </span>
@@ -321,67 +540,104 @@ const CustomerKhata = () => {
                     </div>
                 </div>
 
-                {/* Cycle View Tabs */}
-                <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-4">
-                    {CYCLE_VIEWS.map(view => (
-                        <button
-                            key={view}
-                            onClick={() => setCycleView(view)}
-                            className={`flex-1 text-xs font-semibold py-2 rounded-lg transition-all ${cycleView === view
-                                    ? 'bg-white text-indigo-600 shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700'
-                                }`}
-                        >
-                            {view}
-                        </button>
-                    ))}
+                {/* ── TAB SWITCHER ── */}
+                <div className="flex bg-slate-100 p-1 rounded-xl mb-4 gap-1">
+                    <button
+                        onClick={() => setActiveTab('entries')}
+                        className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 rounded-lg transition-all ${activeTab === 'entries'
+                            ? 'bg-white text-indigo-600 shadow-sm'
+                            : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        Entries
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('history')}
+                        className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 rounded-lg transition-all ${activeTab === 'history'
+                            ? 'bg-white text-indigo-600 shadow-sm'
+                            : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        History
+                    </button>
                 </div>
 
-                {/* Entries */}
+                {/* LOADING */}
                 {loading ? (
                     <div className="flex justify-center py-10">
                         <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
                     </div>
-                ) : entries.length === 0 ? (
-                    <div className="text-center py-16">
-                        <div className="text-5xl mb-3">📋</div>
-                        <p className="text-slate-600 font-semibold">No entries yet</p>
-                        <p className="text-slate-400 text-sm mt-1">Tap + to add the first entry</p>
-                    </div>
-                ) : grouped.length === 0 ? (
-                    <div className="text-center py-10">
-                        <p className="text-slate-500">No entries for this view</p>
-                    </div>
+                ) : activeTab === 'history' ? (
+                    /* ── HISTORY TAB ── */
+                    <HistoryTab entries={entries} />
                 ) : (
-                    <div className="flex flex-col gap-4">
-                        {grouped.map(({ label, items }) => {
-                            const groupCredit = items.filter(e => e.type === 'CREDIT').reduce((s, e) => s + (e.amount || 0), 0);
-                            const groupDebit = items.filter(e => e.type === 'DEBIT').reduce((s, e) => s + (e.amount || 0), 0);
-                            return (
-                                <div key={label} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                                    {/* Group Header */}
-                                    <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{label}</p>
-                                        <div className="flex gap-3 text-xs">
-                                            {groupCredit > 0 && <span className="text-red-500 font-semibold">+₹{groupCredit.toFixed(0)}</span>}
-                                            {groupDebit > 0 && <span className="text-green-500 font-semibold">-₹{groupDebit.toFixed(0)}</span>}
+                    /* ── ENTRIES TAB ── */
+                    <>
+                        {/* Cycle View Tabs */}
+                        <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-4">
+                            {CYCLE_VIEWS.map(view => (
+                                <button
+                                    key={view}
+                                    onClick={() => setCycleView(view)}
+                                    className={`flex-1 text-xs font-semibold py-2 rounded-lg transition-all ${cycleView === view
+                                        ? 'bg-white text-indigo-600 shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-700'
+                                        }`}
+                                >
+                                    {view}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Entries */}
+                        {entries.length === 0 ? (
+                            <div className="text-center py-16">
+                                <div className="text-5xl mb-3">📋</div>
+                                <p className="text-slate-600 font-semibold">No entries yet</p>
+                                <p className="text-slate-400 text-sm mt-1">Tap + to add the first entry</p>
+                            </div>
+                        ) : grouped.length === 0 ? (
+                            <div className="text-center py-10">
+                                <p className="text-slate-500">No entries for this view</p>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-4">
+                                {grouped.map(({ label, items }) => {
+                                    const groupCredit = items.filter(e => e.type === 'CREDIT').reduce((s, e) => s + (e.amount || 0), 0);
+                                    const groupDebit = items.filter(e => e.type === 'DEBIT').reduce((s, e) => s + (e.amount || 0), 0);
+                                    return (
+                                        <div key={label} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                                            {/* Group Header */}
+                                            <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{label}</p>
+                                                <div className="flex gap-3 text-xs">
+                                                    {groupCredit > 0 && <span className="text-red-500 font-semibold">+₹{groupCredit.toFixed(0)}</span>}
+                                                    {groupDebit > 0 && <span className="text-green-500 font-semibold">-₹{groupDebit.toFixed(0)}</span>}
+                                                </div>
+                                            </div>
+                                            <div className="divide-y divide-slate-50">
+                                                {items.map(entry => (
+                                                    <EntryRow
+                                                        key={entry.id}
+                                                        entry={entry}
+                                                        onEdit={(e) => { setEditingEntry(e); setModalOpen(true); }}
+                                                        onDelete={(e) => setConfirmDelete(e)}
+                                                        onMarkPaid={handleMarkPaid}
+                                                    />
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="divide-y divide-slate-50">
-                                        {items.map(entry => (
-                                            <EntryRow
-                                                key={entry.id}
-                                                entry={entry}
-                                                onEdit={(e) => { setEditingEntry(e); setModalOpen(true); }}
-                                                onDelete={(e) => setConfirmDelete(e)}
-                                                onMarkPaid={handleMarkPaid}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
@@ -400,6 +656,16 @@ const CustomerKhata = () => {
                 onSave={handleSaveEntry}
                 editEntry={editingEntry}
                 loading={entryLoading}
+            />
+
+            {/* Collect Payment Modal */}
+            <KhataPaymentModal
+                open={paymentModalOpen}
+                onClose={() => setPaymentModalOpen(false)}
+                customer={customer}
+                merchantData={merchantData}
+                merchantId={currentUser?.uid}
+                onSuccess={() => { refreshCustomer(); showToast('✅ Payment recorded'); }}
             />
 
             {/* Delete Confirm */}

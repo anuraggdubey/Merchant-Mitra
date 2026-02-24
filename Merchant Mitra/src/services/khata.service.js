@@ -155,10 +155,11 @@ export const addEntry = async (merchantId, customerId, data) => {
     }
 };
 
-export const getEntries = async (customerId) => {
+export const getEntries = async (merchantId, customerId) => {
     try {
         const q = query(
             collection(db, ENTRIES_COL),
+            where('merchantId', '==', merchantId),
             where('customerId', '==', customerId),
             orderBy('createdAt', 'desc')
         );
@@ -170,9 +171,10 @@ export const getEntries = async (customerId) => {
     }
 };
 
-export const subscribeEntries = (customerId, callback) => {
+export const subscribeEntries = (merchantId, customerId, callback) => {
     const q = query(
         collection(db, ENTRIES_COL),
+        where('merchantId', '==', merchantId),
         where('customerId', '==', customerId),
         orderBy('createdAt', 'desc')
     );
@@ -180,6 +182,7 @@ export const subscribeEntries = (customerId, callback) => {
         const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         callback({ success: true, data });
     }, (error) => {
+        console.error('subscribeEntries error:', error.code, error.message);
         callback({ success: false, error: error.message, data: [] });
     });
 };
